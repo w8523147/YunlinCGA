@@ -202,6 +202,7 @@
       const [data, setData] = useState(initialData);
       const [editMode, setEditMode] = useState(true);
       const [isDownloading, setIsDownloading] = useState(false);
+      const [previewImage, setPreviewImage] = useState(null); // 用於儲存 iOS 預覽圖片
       const canvasRef = useRef(null);
       const [lines, setLines] = useState([]);
 
@@ -253,7 +254,6 @@
         };
       }, [calculateLines]);
 
-      // 修正：使用 Immutable 寫法更新階層隱藏狀態
       const handleToggleLayer = (layerKey) => {
         if (data[layerKey]) {
           if (!confirm('確認刪除/隱藏此階層？隱藏後資料不會遺失，可隨時恢復。')) return;
@@ -263,7 +263,6 @@
 
       const handleTitleChange = (e) => setData(prev => ({ ...prev, title: e.target.value }));
       
-      // 修正：使用 Immutable 寫法修改單一節點資料，確保畫面即時重繪
       const handleNodeChange = (category, index, field, value) => {
         setData(prev => {
           const newArray = [...prev[category]];
@@ -272,7 +271,6 @@
         });
       };
 
-      // 修正：使用 Immutable 寫法新增節點
       const handleAddNode = (category) => {
         const newId = Date.now().toString() + Math.floor(Math.random() * 1000);
         const newNode = { id: `${category}-${newId}`, name: 'NEW_TARGET', role: '', details: '', status: '', isMissing: false, gender: 'male' };
@@ -282,7 +280,6 @@
         }));
       };
 
-      // 修正：使用 Immutable 寫法刪除節點，解決「按刪除沒反應」的問題
       const handleRemoveNode = (category, index) => {
         if (confirm('確認從系統中刪除此目標？')) {
           setData(prev => {
@@ -307,10 +304,21 @@
           });
           
           const image = canvas.toDataURL("image/png");
-          const link = document.createElement('a');
-          link.href = image;
-          link.download = `[SYS_${data.title || '犯罪關聯圖'}]_HUD.png`; 
-          link.click();
+          
+          // 偵測是否為 Apple 裝置 (iOS Safari 安全限制阻擋直接下載)
+          const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+          
+          if (isIOS) {
+             // 蘋果手機改採開啟全螢幕視窗，讓使用者自行長按圖片儲存
+             setPreviewImage(image);
+          } else {
+             // Android 或電腦版則直接觸發下載
+             const link = document.createElement('a');
+             link.href = image;
+             link.download = `[SYS_${data.title || '犯罪關聯圖'}]_HUD.png`; 
+             link.click();
+          }
+
         } catch (err) {
           console.error("截圖失敗:", err);
           alert("系統異常：截圖產生失敗！");
@@ -375,8 +383,31 @@
       );
 
       return (
-        <div className="flex h-[100dvh] w-full bg-[#050b14] overflow-hidden">
+        <div className="flex h-[100dvh] w-full bg-[#050b14] overflow-hidden relative">
           
+          {/* --- iOS 下載預覽彈窗 (蘋果手機專用) --- */}
+          {previewImage && (
+            <div className="fixed inset-0 z-[100] bg-[#050b14]/95 backdrop-blur-md flex flex-col items-center justify-center p-4 md:p-10">
+               <div className="bg-[#0a111f] border border-cyan-500/50 p-4 md:p-6 rounded-xl shadow-[0_0_30px_rgba(0,243,255,0.2)] max-w-full w-full max-h-full flex flex-col items-center relative">
+                 <p className="text-cyan-400 font-cyber mb-4 text-center text-sm md:text-base tracking-widest leading-relaxed">
+                   [ 系統提示 : iOS 安全限制 ]<br/>
+                   請<strong className="text-rose-400 text-lg mx-1 animate-pulse">長按下方圖片</strong>並選擇「儲存影像」
+                 </p>
+                 
+                 <div className="overflow-auto w-full border border-slate-700 rounded bg-black flex-1 shadow-inner">
+                   <img src={previewImage} alt="HUD_Preview" className="w-full h-auto object-contain" />
+                 </div>
+                 
+                 <button 
+                   onClick={() => setPreviewImage(null)}
+                   className="mt-6 bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/50 px-8 py-3 rounded font-cyber tracking-widest active:scale-95 transition-all shadow-[0_0_10px_rgba(0,243,255,0.2)]"
+                 >
+                   CLOSE // 關閉視窗
+                 </button>
+               </div>
+            </div>
+          )}
+
           {/* --- Sidebar Editor --- */}
           <div className={`${editMode ? 'flex' : 'hidden'} md:flex fixed inset-0 z-50 md:static flex-col w-full md:w-[400px] bg-[#0a111f] border-r border-slate-800 shadow-2xl h-full overflow-y-auto shrink-0 transition-all`}>
             
