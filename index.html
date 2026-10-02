@@ -131,12 +131,21 @@
   <script type="text/babel">
     const { useState, useEffect, useRef, useCallback } = React;
 
-    // --- 科技感 Icons ---
+    // --- 科技感 Icons (更新：加入性別辨識設計) ---
     const UserMaleIcon = () => (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
     );
     const UserFemaleIcon = () => (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle><line x1="12" y1="11" x2="12" y2="14"></line></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+        {/* 新增女性特徵符號 (十字) */}
+        <line x1="12" y1="11" x2="12" y2="14"></line>
+        <line x1="10" y1="13" x2="14" y2="13"></line>
+      </svg>
     );
     const EditIcon = () => (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
@@ -155,16 +164,16 @@
       showAccomplices: true, 
       showThirdGroup: true,  
       suspects: [
-        { id: 's1', name: '主嫌A', role: '首腦', details: '負責統籌與資金', status: '在逃', isMissing: true, gender: 'male' }
+        { id: 's1', name: '主嫌A', role: '首腦', details: '負責統籌與資金', status: '在逃', isMissing: true, gender: 'male', photo: null }
       ],
       accomplices: [
-        { id: 'a1', name: '共犯B', role: '車手頭', details: '指揮車手提款', status: '羈押', isMissing: false, gender: 'male' },
-        { id: 'a2', name: '共犯C', role: '會計', details: '負責記帳與分潤', status: '交保', isMissing: false, gender: 'female' }
+        { id: 'a1', name: '共犯B', role: '車手頭', details: '指揮車手提款', status: '羈押', isMissing: false, gender: 'male', photo: null },
+        { id: 'a2', name: '共犯C', role: '會計', details: '負責記帳與分潤', status: '交保', isMissing: false, gender: 'female', photo: null }
       ],
       thirdGroup: [
-        { id: 't1', name: '藥角D', role: '下游', details: '負責末端販售', status: '', isMissing: false, gender: 'male' },
-        { id: 't2', name: '藥角E', role: '下游', details: '負責末端販售', status: '', isMissing: false, gender: 'female' },
-        { id: 't3', name: '藥角F', role: '下游', details: '', status: '失聯', isMissing: true, gender: 'male' }
+        { id: 't1', name: '藥角D', role: '下游', details: '負責末端販售', status: '', isMissing: false, gender: 'male', photo: null },
+        { id: 't2', name: '藥角E', role: '下游', details: '負責末端販售', status: '', isMissing: false, gender: 'female', photo: null },
+        { id: 't3', name: '藥角F', role: '下游', details: '', status: '失聯', isMissing: true, gender: 'male', photo: null }
       ]
     };
 
@@ -175,8 +184,17 @@
         <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-current opacity-50"></div>
         <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-current opacity-50"></div>
         
-        <div className={`icon-container p-2 mb-2 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-sm`}>
-          {data.gender === 'male' ? <UserMaleIcon /> : <UserFemaleIcon />}
+        {/* 頭像區域：有照片顯示照片，無照片顯示 Icon */}
+        <div className={`icon-container p-1 mb-2 w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-sm overflow-hidden relative bg-black/50`}>
+          {data.photo ? (
+            <img src={data.photo} alt={data.name} className="w-full h-full object-cover rounded-sm filter contrast-125 saturate-50" />
+          ) : (
+            <div className="w-10 h-10 p-1">
+              {data.gender === 'male' ? <UserMaleIcon /> : <UserFemaleIcon />}
+            </div>
+          )}
+          {/* 掃描線特效裝飾 */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-400/10 to-transparent animate-[scan_2s_linear_infinite] pointer-events-none"></div>
         </div>
         
         <div className="text-center font-bold text-sm md:text-base mb-1 leading-tight text-glow-white break-words w-full font-cyber">
@@ -271,9 +289,21 @@
         });
       };
 
+      // 新增：處理照片上傳，將圖片轉為 Data URL
+      const handlePhotoUpload = (category, index, e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+             handleNodeChange(category, index, 'photo', reader.result);
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+
       const handleAddNode = (category) => {
         const newId = Date.now().toString() + Math.floor(Math.random() * 1000);
-        const newNode = { id: `${category}-${newId}`, name: 'NEW_TARGET', role: '', details: '', status: '', isMissing: false, gender: 'male' };
+        const newNode = { id: `${category}-${newId}`, name: 'NEW_TARGET', role: '', details: '', status: '', isMissing: false, gender: 'male', photo: null };
         setData(prev => ({
           ...prev,
           [category]: [...prev[category], newNode]
@@ -353,6 +383,29 @@
             TARGET: {node.name || 'UNKNOWN'}
           </div>
           
+          {/* 新增：照片上傳區塊 */}
+          <div className="mb-3 flex items-center gap-3 bg-slate-900/50 p-2 border border-slate-700/50 rounded">
+             {node.photo ? (
+                <div className="relative w-10 h-10 shrink-0 border border-cyan-500/50 rounded overflow-hidden">
+                   <img src={node.photo} alt="preview" className="w-full h-full object-cover" />
+                   <button onClick={() => handleNodeChange(category, index, 'photo', null)} className="absolute inset-0 bg-red-500/80 text-white text-[10px] font-bold opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity">移除</button>
+                </div>
+             ) : (
+                <div className="w-10 h-10 shrink-0 border border-dashed border-slate-600 rounded flex items-center justify-center text-slate-500">
+                   {node.gender === 'male' ? <UserMaleIcon /> : <UserFemaleIcon />}
+                </div>
+             )}
+             <div className="flex-1">
+               <label className="block text-[10px] font-cyber text-cyan-500/70 mb-1">IMAGE_DATA (大頭照)</label>
+               <input 
+                 type="file" 
+                 accept="image/*"
+                 onChange={(e) => handlePhotoUpload(category, index, e)}
+                 className="block w-full text-[10px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-bold file:bg-cyan-900/40 file:text-cyan-300 hover:file:bg-cyan-800/60 transition cursor-pointer"
+               />
+             </div>
+          </div>
+
           <div className="flex flex-col md:flex-row gap-0 md:gap-3">
              <div className="flex-1">
                {renderFormInput("姓名/代號", node.name, (e) => handleNodeChange(category, index, 'name', e.target.value))}
